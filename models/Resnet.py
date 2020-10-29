@@ -158,6 +158,7 @@ def resnet101():
   return Resnet(BlockNeck,[3,4,23,3])
 
 def resnet152():
+  return Resnet(BlockNeck,[3,8,36,3])
 
 
   
