@@ -8,13 +8,21 @@ import torch.optim as optim
 import torch.nn as nn
 from torch.utils.data import sampler
 from utils.draw import result_visual
+<<<<<<< HEAD
+=======
+
+>>>>>>> d7c81451deda27aa20e3dc69965b67c6cae11965
 parser = argparse.ArgumentParser(description="argument of training")
 parser.add_argument('--lr',default=0.001,type=float,help="learning rate")
 parser.add_argument("--resume",'-r',action='store_true',help="resume from cheakpoint")
 args = parser.parse_args()
 
+<<<<<<< HEAD
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu' 
 print(device)
+=======
+device = 'cuda' if torch.cuda.is_available() else 'cpu' 
+>>>>>>> d7c81451deda27aa20e3dc69965b67c6cae11965
 
 print("==>Preparing data")
 
@@ -60,7 +68,8 @@ if args.resume:
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(),lr=args.lr,momentum=0.9,weight_decay=5e-4) 
 
-train_loss,correct,total = 0,0,0
+train_loss,correct,total,val_loss = 0,0,0,0
+train_loss_dw,val_loss_dw,train_acc_dw, val_acc_dw = [], [],[],[]
 
 for epoch in range(100):
     for batch_idx,(inputs,target) in enumerate(trainloader):
@@ -77,24 +86,28 @@ for epoch in range(100):
         correct     = predicted.eq(targets).sum().item()
 
         if batch_idx %10 ==0:
-            val_loss_v = 0
             for batch_idx_v,(inputs_v,target_v) in enumerate(valloader):
                 inputs_v,targets_v = inputs_v.to(device),target_v.to(device)
                 outputs_v = net(inputs_v)
                 loss_v = criterion(outputs_v,targets_v)
 
-                val_loss_v      += loss_v.item()
+                val_loss      += loss_v.item()
                 _,predicted_v = outputs_v.max(1)
                 total_v       = targets_v.size(0)
                 correct_v     = predicted_v.eq(targets_v).sum().item()
                 
 
+                
+                train_loss_dw.append(train_loss/(batch_idx+1))
+                val_loss_dw.append(val_loss/(batch_idx+1))
+
+
             print("train_loss:%.3f|train_acc:%.3f|val_loss:%.3f|val_acc:%.3f"%(train_loss/(batch_idx+1),\
-                (100.*correct/total),val_loss_v/(batch_idx_v+1),(100.*correct_v/total_v)))
+                (100.*correct/total),val_loss/(batch_idx_v+1),(100.*correct_v/total_v)))
         
         val_acc = 100.*correct_v/total_v
         if val_acc>best_acc:
-            print("saving")
+            print("saving...")
             state = {
                 'net': net.state_dict(),
                 'acc':val_acc,
@@ -105,6 +118,8 @@ for epoch in range(100):
                 os.mkdir('checkpoint')
             torch.save(state,'./checkpoint/ckpt.pth')
             best_acc = val_acc
+        
+result_visual(train_loss_dw,val_loss_dw,train_acc_dw,val_acc_dw)
 
 
 

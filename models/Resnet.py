@@ -100,9 +100,65 @@ class BasicBlock(nn.Module):
     return nn.ReLU(inplace=True)(result+self.shortcut(x))
 
 
+class BlockNeck(nn.Module):
+  """residual block for resnet50 to resnet152 
+  """
+  expansion = 4 #类属性，control output channels.In res50-152,out_channels is 4 times in_channels,but res18-34,its 1 times 
+
+  def __init__(self,in_channels,out_channels,stride):
+      super().__init__()
+      #out_channels of the first and second layers is the same with that of the BasicBlock
+      self.resblock = nn.Sequential(
+          nn.Conv2d(in_channels=in_channels,out_channels=out_channels,padding=1,kernel_size=1,stride=stride),
+          nn.BatchNorm2d(out_channels),
+          nn.ReLU(inplace=True),
+          nn.Conv2d(in_channels=in_channels,out_channels=out_channels,padding=1,kernel_size=3,stride=1),
+          nn.BatchNorm2d(out_channels),
+          nn.ReLU(inplace=True),
+          nn.Conv2d(in_channels=out_channels,out_channels=out_channels*BasicBlock.expansion,padding=1,kernel_size=3,stride=1),
+          nn.BatchNorm2d(out_channels),
+      )
+
+      self.shortcut = nn.Sequential()
+
+      if stride!=1 or in_channels!=out_channels*BasicBlock.expansion:
+        self.shortcut = nn.Sequential(
+          nn.Conv2d(in_channels=in_channels,out_channels=out_channels,kernel_size=1,stride=stride),
+          nn.BatchNorm2d(out_channels*BasicBlock.expansion),
+        )
+
+
+
+
+  def forward(self,x):
+    """Forward propagation
+
+    Args:
+      x:input
+
+    Return:
+      return a layer
+    """
+    result = self.resblock(x)
+
+    return nn.ReLU(inplace=True)(result+self.shortcut(x))
+
+
+
 def resnet18():
   return Resnet(BasicBlock,[2,2,2,2])
 
+def resnet34():
+  return Resnet(BasicBlock,[2,3,6,4])
+
+def resnet54():
+  return Resnet(BlockNeck,[2,3,6,3])
+
+def resnet101():
+  return Resnet(BlockNeck,[3,4,23,3])
+
+def resnet152():
+  return Resnet(BlockNeck,[3,8,36,3])
 
 
   
