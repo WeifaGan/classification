@@ -14,7 +14,7 @@ parser.add_argument('--lr',default=0.001,type=float,help="learning rate")
 parser.add_argument("--resume",'-r',action='store_true',help="resume from cheakpoint")
 args = parser.parse_args()
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu' 
+device = 'cuda:0' if torch.cuda.is_available() else 'cpu' 
 
 print("==>Preparing data")
 
