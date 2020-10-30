@@ -90,7 +90,8 @@ for epoch in range(100):
             
             train_loss_dw.append(train_loss/((batch_idx*(epoch+1))+1))
             val_loss_dw.append(val_loss/(batch_idx+1))
-
+            train_acc_dw.append((100.*correct/total))
+            val_acc_dw.append((100.*correct_v/total_v))
 
             print("train_loss:%.3f|train_acc:%.3f|val_loss:%.3f|val_acc:%.3f"%(train_loss/(batch_idx*(epoch+1))+1),\
                 (100.*correct/total),val_loss/(batch_idx_v*(epoch+1)+1),(100.*correct_v/total_v))
