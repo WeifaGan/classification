@@ -25,7 +25,7 @@ for idx,(inputs,targets) in enumerate(valloader):
     correct       += predicted.eq(targets).sum().item()
     total         += targets.size(0)  
 
-print("test_acc:%.3f"%(100*correct/total))
+print("test_acc:%.3f"%(100.*correct/total))
 
 
 

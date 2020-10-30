@@ -8,21 +8,13 @@ import torch.optim as optim
 import torch.nn as nn
 from torch.utils.data import sampler
 from utils.draw import result_visual
-<<<<<<< HEAD
-=======
-
->>>>>>> d7c81451deda27aa20e3dc69965b67c6cae11965
 parser = argparse.ArgumentParser(description="argument of training")
 parser.add_argument('--lr',default=0.001,type=float,help="learning rate")
 parser.add_argument("--resume",'-r',action='store_true',help="resume from cheakpoint")
 args = parser.parse_args()
 
-<<<<<<< HEAD
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu' 
 print(device)
-=======
-device = 'cuda' if torch.cuda.is_available() else 'cpu' 
->>>>>>> d7c81451deda27aa20e3dc69965b67c6cae11965
 
 print("==>Preparing data")
 
@@ -72,8 +64,8 @@ train_loss,correct,total,val_loss = 0,0,0,0
 train_loss_dw,val_loss_dw,train_acc_dw, val_acc_dw = [], [],[],[]
 
 for epoch in range(100):
-    for batch_idx,(inputs,target) in enumerate(trainloader):
-        inputs,targets = inputs.to(device),target.to(device)
+    for batch_idx,(inputs,targets) in enumerate(trainloader):
+        inputs,targets = inputs.to(device),targets.to(device)
         optimizer.zero_grad()
         outputs = net(inputs)
         loss = criterion(outputs,targets)
@@ -82,7 +74,11 @@ for epoch in range(100):
 
         train_loss += loss.item()
         _,predicted = outputs.max(1)
+<<<<<<< HEAD
         total       = targets.size(0)
+=======
+        total       = target.size(0)
+>>>>>>> afb34a934e7d9eb6ed347ca7a50b63472ed04edc
         correct     = predicted.eq(targets).sum().item()
 
         if batch_idx %10 ==0:
@@ -93,6 +89,7 @@ for epoch in range(100):
 
                 val_loss      += loss_v.item()
                 _,predicted_v = outputs_v.max(1)
+<<<<<<< HEAD
                 total_v       = targets_v.size(0)
                 correct_v     = predicted_v.eq(targets_v).sum().item()
                 
@@ -100,10 +97,19 @@ for epoch in range(100):
                 
                 train_loss_dw.append(train_loss/(batch_idx+1))
                 val_loss_dw.append(val_loss/(batch_idx+1))
+=======
+                total_v       = target_v.size(0)
+                correct_v     = predicted_v.eq(targets_v).sum().item()
+>>>>>>> afb34a934e7d9eb6ed347ca7a50b63472ed04edc
 
+            
+            train_loss_dw.append(train_loss/((batch_idx*(epoch+1))+1))
+            val_loss_dw.append(val_loss/(batch_idx+1))
+            train_acc_dw.append((100.*correct/total))
+            val_acc_dw.append((100.*correct_v/total_v))
 
-            print("train_loss:%.3f|train_acc:%.3f|val_loss:%.3f|val_acc:%.3f"%(train_loss/(batch_idx+1),\
-                (100.*correct/total),val_loss/(batch_idx_v+1),(100.*correct_v/total_v)))
+            print("train_loss:%.3f|train_acc:%.3f|val_loss:%.3f|val_acc:%.3f"%(train_loss/(batch_idx*(epoch+1))+1),\
+                (100.*correct/total),val_loss/(batch_idx_v*(epoch+1)+1),(100.*correct_v/total_v))
         
         val_acc = 100.*correct_v/total_v
         if val_acc>best_acc:
