@@ -17,6 +17,7 @@ def result_visual(train_loss,val_loss,train_acc,val_acc):
     plt.xlabel("iteration times")
     plt.title("acc Result")
     plt.show() 
+    print("draw end!")
 
 
 
