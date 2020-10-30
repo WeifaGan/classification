@@ -63,8 +63,8 @@ train_loss,correct,total,val_loss = 0,0,0,0
 train_loss_dw,val_loss_dw,train_acc_dw, val_acc_dw = [], [],[],[]
 
 for epoch in range(100):
-    for batch_idx,(inputs,target) in enumerate(trainloader):
-        inputs,targets = inputs.to(device),target.to(device)
+    for batch_idx,(inputs,targets) in enumerate(trainloader):
+        inputs,targets = inputs.to(device),targets.to(device)
         optimizer.zero_grad()
         outputs = net(inputs)
         loss = criterion(outputs,targets)
@@ -74,7 +74,7 @@ for epoch in range(100):
         train_loss += loss.item()
         _,predicted = outputs.max(1)
         total       = target.size(0)
-        correct     = predicted.eq(target).sum().item()
+        correct     = predicted.eq(targets).sum().item()
 
         if batch_idx %10 ==0:
             for batch_idx_v,(inputs_v,target_v) in enumerate(valloader):
@@ -85,15 +85,15 @@ for epoch in range(100):
                 val_loss      += loss_v.item()
                 _,predicted_v = outputs_v.max(1)
                 total_v       = target_v.size(0)
-                correct_v     = predicted_v.eq(target_v).sum().item()
+                correct_v     = predicted_v.eq(targets_v).sum().item()
 
-                
-                train_loss_dw.append(train_loss/(batch_idx+1))
-                val_loss_dw.append(val_loss/(batch_idx+1))
+            
+            train_loss_dw.append(train_loss/((batch_idx*(epoch+1))+1))
+            val_loss_dw.append(val_loss/(batch_idx+1))
 
 
-            print("train_loss:%.3f|train_acc:%.3f|val_loss:%.3f|val_acc:%.3f"%(train_loss/(batch_idx+1),\
-                (100.*correct/total),val_loss/(batch_idx_v+1),(100.*correct_v/total_v)))
+            print("train_loss:%.3f|train_acc:%.3f|val_loss:%.3f|val_acc:%.3f"%(train_loss/(batch_idx*(epoch+1))+1),\
+                (100.*correct/total),val_loss/(batch_idx_v*(epoch+1)+1),(100.*correct_v/total_v))
         
         val_acc = 100.*correct_v/total_v
         if val_acc>best_acc:
