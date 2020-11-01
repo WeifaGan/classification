@@ -15,8 +15,7 @@ class Resnet(nn.Module):
         nn.Conv2d(in_channels=3,out_channels=64,kernel_size=7,padding=4,stride=2),
         nn.BatchNorm2d(64),
         nn.ReLU(inplace=True),
-        nn.MaxPool2d(kernel_size=3,stride=2),
-    )
+        nn.MaxPool2d(kernel_size=3,stride=2))
 
     self.conv2_x = self.make_layer(BasicBlock,64,block_num[0],1)
     self.conv3_x = self.make_layer(BasicBlock,128,block_num[1],2)

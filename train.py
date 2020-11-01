@@ -3,13 +3,14 @@ import torchvision
 import torchvision.transforms as transforms
 import os 
 import argparse
-from models import Resnet
+from models import * 
 import torch.optim as optim
 import torch.nn as nn
 from torch.utils.data import sampler
 from utils.draw import result_visual
 parser = argparse.ArgumentParser(description="argument of training")
-parser.add_argument('--lr',default=0.001,type=float,help="learning rate")
+parser.add_argument('--lr',default=0.1,type=float,help="learning rate")
+parser.add_argument('--epoch',default=200,type=int,help="total number of epoch")
 parser.add_argument("--resume",'-r',action='store_true',help="resume from cheakpoint")
 args = parser.parse_args()
 
@@ -45,25 +46,29 @@ valloader = torch.utils.data.DataLoader(
 
 print("==>Building model")
 
-net = Resnet.resnet18()
+# net = resnet18()
+net = mobilenetv1()
 net = net.to(device)
 
 best_acc = 0
+best_vloss = float('inf') 
+start_epoch = 0
 if args.resume:
     print("==>Rusuming from checkpoint")
     assert os.path.isdir('checkpoint'),'Error:no checkpoint!'
     checkpoint = torch.load('./checkpoint/ckpt.pth')
     net.load_state_dict(checkpoint['net'])
     best_acc = checkpoint['acc']
-    start_epoch = checkpoint['epoch']
+    start_epoch = checkpoint['next_epoch']
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(),lr=args.lr,momentum=0.9,weight_decay=5e-4) 
+optimizer = optim.SGD(net.parameters(),lr=args.lr,momentum=0.95, weight_decay=5e-4) 
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer,milestones=[70,150], gamma=0.1)
 
-train_loss,correct,total,val_loss = 0,0,0,0
 train_loss_dw,val_loss_dw,train_acc_dw, val_acc_dw = [], [],[],[]
 
-for epoch in range(100):
+for epoch in range(start_epoch,args.epoch):
+    train_loss,correct,total = 0,0,0
     for batch_idx,(inputs,targets) in enumerate(trainloader):
         inputs,targets = inputs.to(device),targets.to(device)
         optimizer.zero_grad()
@@ -74,14 +79,12 @@ for epoch in range(100):
 
         train_loss += loss.item()
         _,predicted = outputs.max(1)
-<<<<<<< HEAD
+
         total       = targets.size(0)
-=======
-        total       = target.size(0)
->>>>>>> afb34a934e7d9eb6ed347ca7a50b63472ed04edc
         correct     = predicted.eq(targets).sum().item()
 
         if batch_idx %10 ==0:
+            val_loss = 0
             for batch_idx_v,(inputs_v,target_v) in enumerate(valloader):
                 inputs_v,targets_v = inputs_v.to(device),target_v.to(device)
                 outputs_v = net(inputs_v)
@@ -89,42 +92,40 @@ for epoch in range(100):
 
                 val_loss      += loss_v.item()
                 _,predicted_v = outputs_v.max(1)
-<<<<<<< HEAD
                 total_v       = targets_v.size(0)
                 correct_v     = predicted_v.eq(targets_v).sum().item()
                 
-
-                
-                train_loss_dw.append(train_loss/(batch_idx+1))
-                val_loss_dw.append(val_loss/(batch_idx+1))
-=======
                 total_v       = target_v.size(0)
                 correct_v     = predicted_v.eq(targets_v).sum().item()
->>>>>>> afb34a934e7d9eb6ed347ca7a50b63472ed04edc
 
             
             train_loss_dw.append(train_loss/((batch_idx*(epoch+1))+1))
-            val_loss_dw.append(val_loss/(batch_idx+1))
+            val_loss_dw.append(val_loss/(batch_idx_v+1))
             train_acc_dw.append((100.*correct/total))
             val_acc_dw.append((100.*correct_v/total_v))
 
-            print("train_loss:%.3f|train_acc:%.3f|val_loss:%.3f|val_acc:%.3f"%(train_loss/(batch_idx*(epoch+1))+1),\
-                (100.*correct/total),val_loss/(batch_idx_v*(epoch+1)+1),(100.*correct_v/total_v))
-        
+            print("total_epoch:%d|cur_epoch:%d|step:%d|train_loss:%.3f|train_acc:%.3f|val_loss:%.3f|val_acc:%.3f"%(args.epoch,\
+            epoch,batch_idx,train_loss/(batch_idx+1),(100.*correct/total),val_loss/(batch_idx_v+1),(100.*correct_v/total_v)))
+
         val_acc = 100.*correct_v/total_v
-        if val_acc>best_acc:
-            print("saving...")
+        cur_vloss = val_loss/(batch_idx_v+1)
+        # if val_acc>best_acc:
+        if cur_vloss<best_vloss:
+            # print("saving,val_acc improved from %.3f to %.3f"%(best_acc,val_acc))
+            print("saving")
             state = {
                 'net': net.state_dict(),
                 'acc':val_acc,
-                'epoch':epoch,
+                'next_epoch':epoch+1,
             }
 
             if not os.path.isdir('checkpoint'):
                 os.mkdir('checkpoint')
             torch.save(state,'./checkpoint/ckpt.pth')
-            best_acc = val_acc
-        
+            # best_acc = val_acc
+            best_vloss = cur_vloss
+    scheduler.step()
+
 result_visual(train_loss_dw,val_loss_dw,train_acc_dw,val_acc_dw)
 
 
