@@ -20,7 +20,7 @@ print(device)
 print("==>Preparing data")
 
 transform_train = transforms.Compose([
-    transforms.Resize(224),
+    transforms.Resize((224,224)),
     transforms.RandomCrop(224, padding=4),
     transforms.RandomHorizontalFlip(),
     transforms.ToTensor(),
@@ -28,7 +28,7 @@ transform_train = transforms.Compose([
 ])
 
 transform_val = transforms.Compose([
-    transforms.Resize(224),
+    transforms.Resize((224,224)),
     transforms.ToTensor(),
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 ])
@@ -46,8 +46,8 @@ valloader = torch.utils.data.DataLoader(
 
 print("==>Building model")
 
-# net = resnet18()
-net = mobilenetv1()
+net = resnet18()
+# net = mobilenetv1()
 net = net.to(device)
 
 best_acc = 0
