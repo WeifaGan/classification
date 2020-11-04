@@ -1,7 +1,7 @@
 import torch 
 import torch.nn as nn
 import torchvision
-from models import Resnet 
+from models import *
 import torchvision.transforms as transforms
 from torch.utils.data import sampler
 
@@ -19,12 +19,12 @@ testset = torchvision.datasets.CIFAR10(
 testloader = torch.utils.data.DataLoader(testset, batch_size=128, shuffle=False, 
   num_workers=2,sampler=sampler.SubsetRandomSampler(range(1000,len(testset))) )
 
-net = Resnet.resnet18()
+net = resnet18()
 net = net.to(device)
 
 checkpoint = torch.load('./checkpoint/ckpt.pth')
 net.load_state_dict(checkpoint['net'])
-
+print(checkpoint['next_epoch'])
 correct,total = 0, 0
 for idx,(inputs,targets) in enumerate(testloader):
     inputs,targets = inputs.to(device),targets.to(device)

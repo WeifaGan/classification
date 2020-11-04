@@ -35,23 +35,22 @@ transform_val = transforms.Compose([
 trainset = torchvision.datasets.CIFAR10(
     root='./data', train=True, download=False, transform=transform_train)
 trainloader = torch.utils.data.DataLoader(
-    trainset, batch_size=128, shuffle=False, num_workers=2)
+    trainset, batch_size=64, shuffle=False, num_workers=2)
 
 testset = torchvision.datasets.CIFAR10(
     root='./data', train=False, download=True, transform=transform_val)
 valloader = torch.utils.data.DataLoader(
-    testset, batch_size=128, shuffle=False, num_workers=2,
+    testset, batch_size=64, shuffle=False, num_workers=2,
     sampler=sampler.SubsetRandomSampler(range(0,int(0.2*len(testset))))) 
 
 
 print("==>Building model")
 
-net = resnet18()
-# net = mobilenetv1()
+# net = resnet18()
+net = mobilenetv1()
 net = net.to(device)
 
-best_acc = 0
-best_vloss = float('inf') 
+best_loss = float('inf') 
 start_epoch = 0
 if args.resume:
     print("==>Rusuming from checkpoint")
@@ -107,15 +106,10 @@ for epoch in range(start_epoch,args.epoch):
             print("total_epoch:%d|cur_epoch:%d|step:%d|train_loss:%.3f|train_acc:%.3f|val_loss:%.3f|val_acc:%.3f"%(args.epoch,\
             epoch,batch_idx,train_loss/(batch_idx+1),(100.*correct/total),val_loss/(batch_idx_v+1),(100.*correct_v/total_v)))
 
-        val_acc = 100.*correct_v/total_v
-        cur_vloss = val_loss/(batch_idx_v+1)
-        # if val_acc>best_acc:
-        if cur_vloss<best_vloss:
-            # print("saving,val_acc improved from %.3f to %.3f"%(best_acc,val_acc))
-            print("saving")
+        if best_loss>val_loss:
+            print("save")
             state = {
                 'net': net.state_dict(),
-                'acc':val_acc,
                 'next_epoch':epoch+1,
             }
 
@@ -123,7 +117,8 @@ for epoch in range(start_epoch,args.epoch):
                 os.mkdir('checkpoint')
             torch.save(state,'./checkpoint/ckpt.pth')
             # best_acc = val_acc
-            best_vloss = cur_vloss
+            best_loss = val_loss
+    state['next_peoch'] = epoch+1
     scheduler.step()
 
 result_visual(train_loss_dw,val_loss_dw,train_acc_dw,val_acc_dw)

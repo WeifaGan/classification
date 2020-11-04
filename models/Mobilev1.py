@@ -4,7 +4,7 @@ import torch.nn as nn
 class Mobilev1(nn.Module):
     def __init__(self,class_num=10):
         super().__init__()
-        self.conv0 = self.conv(in_channels=3,out_channels=32,kernel_size=3,stride=2,padding=3)
+        self.conv0 = self.conv(in_channels=3,out_channels=32,kernel_size=3,stride=2,padding=1)
         self.conv1_dw = self.conv_dw(in_channels=32)
         self.conv1 = self.conv(in_channels=32,out_channels=64)
 
@@ -63,7 +63,7 @@ class Mobilev1(nn.Module):
 
     def forward(self,x):
         print(x.size())
-        out = self.conv(x)
+        out = self.conv0(x)
         print(out.size())
         out = self.conv1_dw(out)
         print(out.size())
