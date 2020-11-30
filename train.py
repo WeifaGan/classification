@@ -3,14 +3,17 @@ import torchvision
 import torchvision.transforms as transforms
 import os 
 import argparse
-from models import * 
+
 import torch.optim as optim
 import torch.nn as nn
 from torch.utils.data import sampler
 from utils.draw import result_visual
+import utils.get_network as get_network
 parser = argparse.ArgumentParser(description="argument of training")
+parser.add_argument('--network',type=str,help="the network to train")
 parser.add_argument('--lr',default=0.1,type=float,help="learning rate")
 parser.add_argument('--epoch',default=200,type=int,help="total number of epoch")
+parser.add_argument('--batch_size',default=64,type=int,help="total number of epoch")
 parser.add_argument("--resume",'-r',action='store_true',help="resume from cheakpoint")
 args = parser.parse_args()
 
@@ -35,34 +38,38 @@ transform_val = transforms.Compose([
 trainset = torchvision.datasets.CIFAR10(
     root='./data', train=True, download=False, transform=transform_train)
 trainloader = torch.utils.data.DataLoader(
-    trainset, batch_size=64, shuffle=False, num_workers=2)
+    trainset, batch_size=args.batch_size, shuffle=False, num_workers=0)
 
 testset = torchvision.datasets.CIFAR10(
     root='./data', train=False, download=True, transform=transform_val)
 valloader = torch.utils.data.DataLoader(
-    testset, batch_size=64, shuffle=False, num_workers=2,
+    testset, batch_size=args.batch_size, shuffle=False, num_workers=0,
     sampler=sampler.SubsetRandomSampler(range(0,int(0.2*len(testset))))) 
 
-
+torch.backends.cudnn.benchmark = True
 print("==>Building model")
 
-# net = resnet18()
-net = mobilenetv1()
+net = get_network.get(args.network) 
+# net = mobilenetv1()
 net = net.to(device)
 
 best_loss = float('inf') 
 start_epoch = 0
-if args.resume:
-    print("==>Rusuming from checkpoint")
-    assert os.path.isdir('checkpoint'),'Error:no checkpoint!'
-    checkpoint = torch.load('./checkpoint/ckpt.pth')
-    net.load_state_dict(checkpoint['net'])
-    best_acc = checkpoint['acc']
-    start_epoch = checkpoint['next_epoch']
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(),lr=args.lr,momentum=0.95, weight_decay=5e-4) 
-scheduler = optim.lr_scheduler.MultiStepLR(optimizer,milestones=[70,150], gamma=0.1)
+lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer,milestones=[80,130,170], gamma=0.1)
+
+if args.resume:
+    print("==>Rusuming from checkpoint")
+    assert os.path.isdir('checkpoint'),'Error:no checkpoint!'
+    checkpoint = torch.load('./checkpoint/best_ckpt.pth')
+    net.load_state_dict(checkpoint['net'])
+    print(checkpoint.keys())
+    optimizer.load_state_dict(checkpoint['optimizer'])  # 加载优化器参数
+    start_epoch = checkpoint['epoch']  # 设置开始的epoch
+    lr_scheduler.load_state_dict(checkpoint['lr_schedule'])#加载lr_scheduler
+
 
 train_loss_dw,val_loss_dw,train_acc_dw, val_acc_dw = [], [],[],[]
 
@@ -103,23 +110,24 @@ for epoch in range(start_epoch,args.epoch):
             train_acc_dw.append((100.*correct/total))
             val_acc_dw.append((100.*correct_v/total_v))
 
-            print("total_epoch:%d|cur_epoch:%d|step:%d|train_loss:%.3f|train_acc:%.3f|val_loss:%.3f|val_acc:%.3f"%(args.epoch,\
+            print("total_ep:%d|cur_ep:%d|step:%d|train_lss:%.3f|train_acc:%.3f|val_lss:%.3f|val_acc:%.3f"%(args.epoch,\
             epoch,batch_idx,train_loss/(batch_idx+1),(100.*correct/total),val_loss/(batch_idx_v+1),(100.*correct_v/total_v)))
 
         if best_loss>val_loss:
             print("save")
             state = {
                 'net': net.state_dict(),
-                'next_epoch':epoch+1,
+                'epoch':epoch+1,
+                'optimizer': optimizer.state_dict(),
+                'lr_schedule': lr_scheduler.state_dict()
             }
 
             if not os.path.isdir('checkpoint'):
                 os.mkdir('checkpoint')
-            torch.save(state,'./checkpoint/ckpt.pth')
+            torch.save(state,'./checkpoint/best_ckpt.pth')
             # best_acc = val_acc
             best_loss = val_loss
-    state['next_peoch'] = epoch+1
-    scheduler.step()
+    lr_scheduler.step()
 
 result_visual(train_loss_dw,val_loss_dw,train_acc_dw,val_acc_dw)
 

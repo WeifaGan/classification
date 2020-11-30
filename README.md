@@ -34,12 +34,12 @@ python test.py
 
 ### Results.
 
-| models    | accuracy |
-| --------- | -------- |
-| resnet18  | 91.056   |
-| resnet34  | TODO     |
-| resnet50  | TODO     |
-| resnet101 | TODO     |
-| resnet152 | TODO     |
-| TODO      | TODO     |
+| models    | test_accuracy | params |
+| --------- | ------------- | ------ |
+| resnet18  | 91.056        | 11.2M  |
+| resnet34  | TODO          |        |
+| resnet50  | TODO          |        |
+| resnet101 | TODO          |        |
+| resnet152 | TODO          |        |
+| TODO      | TODO          |        |
 

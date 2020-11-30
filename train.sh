@@ -1,0 +1,1 @@
+python train.py --network resnet34 --lr 0.001 --epoch 200 

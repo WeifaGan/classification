@@ -4,6 +4,7 @@ import torchvision
 from models import *
 import torchvision.transforms as transforms
 from torch.utils.data import sampler
+from torchsummary import summary
 
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
@@ -22,9 +23,10 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=128, shuffle=False,
 net = resnet18()
 net = net.to(device)
 
-checkpoint = torch.load('./checkpoint/ckpt.pth')
+summary(net, (3, 224, 224))
+
+checkpoint = torch.load('./checkpoint/best_ckpt.pth')
 net.load_state_dict(checkpoint['net'])
-print(checkpoint['next_epoch'])
 correct,total = 0, 0
 for idx,(inputs,targets) in enumerate(testloader):
     inputs,targets = inputs.to(device),targets.to(device)
