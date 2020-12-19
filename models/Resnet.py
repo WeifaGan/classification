@@ -17,10 +17,10 @@ class Resnet(nn.Module):
         nn.ReLU(inplace=True),
        )
 
-    self.conv2_x = self.make_layer(BasicBlock,64,block_num[0],1)
-    self.conv3_x = self.make_layer(BasicBlock,128,block_num[1],2)
-    self.conv4_x = self.make_layer(BasicBlock,256,block_num[2],2)
-    self.conv5_x = self.make_layer(BasicBlock,512,block_num[3],2)
+    self.conv2_x = self.make_layer(block,64,block_num[0],1)
+    self.conv3_x = self.make_layer(block,128,block_num[1],2)
+    self.conv4_x = self.make_layer(block,256,block_num[2],2)
+    self.conv5_x = self.make_layer(block,512,block_num[3],2)
     self.maxpool = nn.MaxPool2d(kernel_size=3,stride=2,padding=1)
     self.avg_pool = nn.AdaptiveAvgPool2d((1,1))
     self.fc = nn.Linear(512*block.expansion,num_classes)
@@ -106,22 +106,22 @@ class BlockNeck(nn.Module):
       super().__init__()
       #out_channels of the first and second layers is the same with that of the BasicBlock
       self.resblock = nn.Sequential(
-          nn.Conv2d(in_channels=in_channels,out_channels=out_channels,padding=1,kernel_size=1,stride=stride),
+          nn.Conv2d(in_channels=in_channels,out_channels=out_channels,kernel_size=1,stride=stride),
           nn.BatchNorm2d(out_channels),
           nn.ReLU(inplace=True),
-          nn.Conv2d(in_channels=in_channels,out_channels=out_channels,padding=1,kernel_size=3,stride=1),
+          nn.Conv2d(in_channels=out_channels,out_channels=out_channels,padding=1,kernel_size=3,stride=1),
           nn.BatchNorm2d(out_channels),
           nn.ReLU(inplace=True),
-          nn.Conv2d(in_channels=out_channels,out_channels=out_channels*BasicBlock.expansion,padding=1,kernel_size=3,stride=1),
-          nn.BatchNorm2d(out_channels),
+          nn.Conv2d(in_channels=out_channels,out_channels=out_channels*BlockNeck.expansion,kernel_size=1,stride=1),
+          nn.BatchNorm2d(out_channels*BlockNeck.expansion),
       )
 
       self.shortcut = nn.Sequential()
 
-      if stride!=1 or in_channels!=out_channels*BasicBlock.expansion:
+      if stride!=1 or in_channels!=out_channels*BlockNeck.expansion:
         self.shortcut = nn.Sequential(
-          nn.Conv2d(in_channels=in_channels,out_channels=out_channels,kernel_size=1,stride=stride),
-          nn.BatchNorm2d(out_channels*BasicBlock.expansion),
+          nn.Conv2d(in_channels=in_channels,out_channels=out_channels*BlockNeck.expansion,kernel_size=1,stride=stride),
+          nn.BatchNorm2d(out_channels*BlockNeck.expansion),
         )
 
 
@@ -137,7 +137,6 @@ class BlockNeck(nn.Module):
       return a layer
     """
     result = self.resblock(x)
-
     return nn.ReLU(inplace=True)(result+self.shortcut(x))
 
 
@@ -146,10 +145,10 @@ def resnet18():
   return Resnet(BasicBlock,[2,2,2,2])
 
 def resnet34():
-  return Resnet(BasicBlock,[2,3,6,4])
+  return Resnet(BasicBlock,[3,4,6,3])
 
-def resnet54():
-  return Resnet(BlockNeck,[2,3,6,3])
+def resnet50():
+  return Resnet(BlockNeck,[3,4,6,3])
 
 def resnet101():
   return Resnet(BlockNeck,[3,4,23,3])

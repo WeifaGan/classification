@@ -12,7 +12,7 @@ import utils.get_network as get_network
 parser = argparse.ArgumentParser(description="argument of training")
 parser.add_argument('--network',type=str,help="the network to train")
 parser.add_argument('--lr',default=0.1,type=float,help="learning rate")
-parser.add_argument('--epoch',default=200,type=int,help="total number of epoch")
+parser.add_argument('--epoch',default=100,type=int,help="total number of epoch")
 parser.add_argument('--batch_size',default=64,type=int,help="total number of epoch")
 parser.add_argument("--resume",'-r',action='store_true',help="resume from cheakpoint")
 args = parser.parse_args()
@@ -50,7 +50,6 @@ torch.backends.cudnn.benchmark = True
 print("==>Building model")
 
 net = get_network.get(args.network) 
-# net = mobilenetv1()
 net = net.to(device)
 
 best_loss = float('inf') 
@@ -58,7 +57,7 @@ start_epoch = 0
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(),lr=args.lr,momentum=0.95, weight_decay=5e-4) 
-lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer,milestones=[80,130,170], gamma=0.1)
+lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer,milestones=[30,50,80], gamma=0.5)
 
 if args.resume:
     print("==>Rusuming from checkpoint")
@@ -124,7 +123,7 @@ for epoch in range(start_epoch,args.epoch):
 
             if not os.path.isdir('checkpoint'):
                 os.mkdir('checkpoint')
-            torch.save(state,'./checkpoint/best_ckpt.pth')
+            torch.save(state,'./checkpoint/ckpt_{}.pth'.format(args.network))
             # best_acc = val_acc
             best_loss = val_loss
     lr_scheduler.step()

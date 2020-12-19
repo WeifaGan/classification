@@ -17,15 +17,15 @@ transform_test = transforms.Compose([
 testset = torchvision.datasets.CIFAR10(
     root='./data', train=False, download=True, transform=transform_test)
 
-testloader = torch.utils.data.DataLoader(testset, batch_size=128, shuffle=False, 
+testloader = torch.utils.data.DataLoader(testset, batch_size=16, shuffle=False, 
   num_workers=2,sampler=sampler.SubsetRandomSampler(range(1000,len(testset))) )
 
-net = resnet18()
+net = resnet101()
 net = net.to(device)
 
 summary(net, (3, 224, 224))
 
-checkpoint = torch.load('./checkpoint/best_ckpt.pth')
+checkpoint = torch.load('./checkpoint/ckpt_resnet101.pth')
 net.load_state_dict(checkpoint['net'])
 correct,total = 0, 0
 for idx,(inputs,targets) in enumerate(testloader):

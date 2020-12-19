@@ -4,14 +4,15 @@ import torch.nn as nn
 class Vgg(nn.Module):
     def __init__(self,layers=16):
         super().__init__()
-        self.conv1 = conv_2layer(3,64)
-        self.conv2 = conv_2layer(64,128)
-        self. = conv_3layer(128,256)
-        self.conv4 = conv_3layer(256,512)
-        self.conv5 = conv_3layer(512,512)
-        self.conv3_19 = conv_3layer(128,256)
-        self.conv4_19 = conv_3layer(256,512)
-        self.conv5_19 = conv_3layer(512,512)
+        self.num_layers = layers
+        self.conv1 = self.conv_2layer(3,64)
+        self.conv2 = self.conv_2layer(64,128)
+        self.con3 = self.conv_3layer(128,256)
+        self.conv4 = self.conv_3layer(256,512)
+        self.conv5 = self.conv_3layer(512,512)
+        self.conv3_19 = self.conv_3layer(128,256)
+        self.conv4_19 = self.conv_3layer(256,512)
+        self.conv5_19 = self.conv_3layer(512,512)
         self.maxpool = nn.MaxPool2d(2,stride=2)
         self.fc1 = nn.Linear(512,4096)
         self.fc2 = nn.Linear(4096,4096)
@@ -21,10 +22,10 @@ class Vgg(nn.Module):
     def conv_2layer(self,in_channels,out_channels):
         Conv = nn.Sequential(
             nn.Conv2d(in_channels,out_channels,3,padding=1),
-            nn.BatchNorm(out_channels),
+            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(out_channels,out_channels,3,padding=1),
-            nn.BatchNorm(64),
+            nn.BatchNorm2d(64),
             nn.ReLU(inplace=True),
             )
         return Conv
@@ -32,29 +33,29 @@ class Vgg(nn.Module):
     def conv_3layer(self,in_channels,out_channels):
         Conv = nn.Sequential(
             nn.Conv2d(in_channels,out_channels,3,padding=1),
-            nn.BatchNorm(out_channels),
+            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(out_channels,out_channels,3,padding=1),
-            nn.BatchNorm(out_channels),
+            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(out_channels,out_channels,3,padding=1),
-            nn.BatchNorm(out_channels),
+            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
             )
         return Conv
     def conv_3layer_19(self,in_channels,out_channels):
         Conv = nn.Sequential(
             nn.Conv2d(in_channels,out_channels,3,padding=1),
-            nn.BatchNorm(out_channels),
+            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(out_channels,out_channels,3,padding=1),
-            nn.BatchNorm(out_channels),
+            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(out_channels,out_channels,3,padding=1),
-            nn.BatchNorm(out_channels),
+            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(out_channels,out_channels,3,padding=1),
-            nn.BatchNorm(out_channels),
+            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
             )
         return Conv
@@ -64,7 +65,7 @@ class Vgg(nn.Module):
         out = self.maxpool(out)
         out = self.conv2(out)
         out1 = self.maxpool(out)
-        if layers==16:
+        if self.num_layers==16:
             out = self.conv3(out1)
             out = self.maxpool(out)
             out = self.conv4(out)

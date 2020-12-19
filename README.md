@@ -9,6 +9,7 @@ my experiment environments
 
 * python3.6
 * pytorch1.5
+* torchsummary
 
 ### Usage
 
@@ -27,19 +28,18 @@ python test.py
 ### Training Details
 
 * input size: 224x224
-* batch size: 64
-* lr_scheduler:MultiStepLR with init lr 0.001
-* epoch: 200
+* lr_scheduler: MultiStepLR with init lr 0.01
+* epoch: 100
 * optimizer: SGD with 0.95 momentum
 
 ### Results.
 
-| models    | test_accuracy | params |
-| --------- | ------------- | ------ |
-| resnet18  | 91.056        | 11.2M  |
-| resnet34  | TODO          |        |
-| resnet50  | TODO          |        |
-| resnet101 | TODO          |        |
-| resnet152 | TODO          |        |
-| TODO      | TODO          |        |
+| models    | batch_size | test_accuracy | params |
+| --------- | ---------- | ------------- | ------ |
+| resnet18  | 64         | 92.144        | 11.2M  |
+| resnet34  | 64         | 92.711        | 21.2M  |
+| resnet50  | 32         | 92.133        | 23.5M  |
+| resnet101 | 16         | 91.711        | 42.5M  |
+| resnet152 |            | TODO          |        |
+| TODO      |            | TODO          |        |
 
